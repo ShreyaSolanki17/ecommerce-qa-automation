@@ -10,3 +10,21 @@ test('standard user can log in successfully', async ({ page }) => {
   await expect(page).toHaveURL(/inventory\.html/);
   await expect(page.getByText('Products')).toBeVisible();
 });
+
+test('invalid credentials display an authentication error', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByLabel('Username').fill('invalid_user');
+  await page.getByLabel('Password').fill('invalid_password');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  await expect(page.getByText('Epic sadface: Username and password do not match any user in this service')).toBeVisible();
+});
+
+test('empty credentials display a required username error', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  await expect(page.getByText('Epic sadface: Username is required')).toBeVisible();
+});
