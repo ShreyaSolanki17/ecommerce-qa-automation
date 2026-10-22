@@ -11,7 +11,12 @@ test('inventory page displays products with prices and add-to-cart buttons', asy
 
   const products = page.locator('.inventory_item');
   await expect(products).toHaveCount(6);
-  await expect(products.first().locator('.inventory_item_name')).toBeVisible();
-  await expect(products.first().locator('.inventory_item_price')).toBeVisible();
-  await expect(products.first().getByRole('button', { name: 'Add to cart' })).toBeVisible();
+
+  for (let index = 0; index < await products.count(); index++) {
+    const product = products.nth(index);
+
+    await expect(product.locator('.inventory_item_name')).toBeVisible();
+    await expect(product.locator('.inventory_item_price')).toBeVisible();
+    await expect(product.getByRole('button', { name: 'Add to cart' })).toBeVisible();
+  }
 });
