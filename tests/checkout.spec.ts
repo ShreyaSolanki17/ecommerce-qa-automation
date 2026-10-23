@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { CartPage } from '../pages/CartPage';
+import { CheckoutPage } from '../pages/CheckoutPage';
+import { LoginPage } from '../pages/LoginPage';
+import { ProductsPage } from '../pages/ProductsPage';
 
 async function addBackpackAndOpenCheckout(page: import('@playwright/test').Page) {
-  await page.goto('/');
-
-  await page.getByLabel('Username').fill('standard_user');
-  await page.getByLabel('Password').fill('secret_sauce');
-  await page.getByRole('button', { name: 'Login' }).click();
-
-  await page.locator('.inventory_item')
-    .filter({ hasText: 'Sauce Labs Backpack' })
-    .getByRole('button', { name: 'Add to cart' })
-    .click();
-  await page.locator('[data-test="shopping-cart-link"]').click();
-  await page.getByRole('button', { name: 'Checkout' }).click();
+  const loginPage = new LoginPage(page);
+  const productsPage = new ProductsPage(page);
+  const cartPage = new CartPage(page);
+  await loginPage.open();
+  await loginPage.login('standard_user', 'secret_sauce');
+  await productsPage.addProduct('Sauce Labs Backpack');
+  await productsPage.openCart();
+  await cartPage.checkout();
 
   await expect(page).toHaveURL(/checkout-step-one\.html/);
 }
@@ -28,10 +28,9 @@ test('checkout requires customer information', async ({ page }) => {
 test('checkout displays the order summary and calculated totals', async ({ page }) => {
   await addBackpackAndOpenCheckout(page);
 
-  await page.getByLabel('First Name').fill('Test');
-  await page.getByLabel('Last Name').fill('Customer');
-  await page.getByLabel('Zip/Postal Code').fill('12345');
-  await page.getByRole('button', { name: 'Continue' }).click();
+  const checkoutPage = new CheckoutPage(page);
+  await checkoutPage.fillCustomerInformation('Test', 'Customer', '12345');
+  await checkoutPage.continue();
 
   await expect(page).toHaveURL(/checkout-step-two\.html/);
   await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
@@ -43,11 +42,10 @@ test('checkout displays the order summary and calculated totals', async ({ page 
 test('user can complete checkout successfully', async ({ page }) => {
   await addBackpackAndOpenCheckout(page);
 
-  await page.getByLabel('First Name').fill('Test');
-  await page.getByLabel('Last Name').fill('Customer');
-  await page.getByLabel('Zip/Postal Code').fill('12345');
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await page.getByRole('button', { name: 'Finish' }).click();
+  const checkoutPage = new CheckoutPage(page);
+  await checkoutPage.fillCustomerInformation('Test', 'Customer', '12345');
+  await checkoutPage.continue();
+  await checkoutPage.finish();
 
   await expect(page).toHaveURL(/checkout-complete\.html/);
   await expect(page.getByText('Thank you for your order!')).toBeVisible();

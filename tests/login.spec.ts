@@ -1,44 +1,38 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
 
 test('standard user can log in successfully', async ({ page }) => {
-  await page.goto('/');
-
-  await page.getByLabel('Username').fill('standard_user');
-  await page.getByLabel('Password').fill('secret_sauce');
-  await page.getByRole('button', { name: 'Login' }).click();
+  const loginPage = new LoginPage(page);
+  await loginPage.open();
+  await loginPage.login('standard_user', 'secret_sauce');
 
   await expect(page).toHaveURL(/inventory\.html/);
   await expect(page.getByText('Products')).toBeVisible();
 });
 
 test('invalid credentials display an authentication error', async ({ page }) => {
-  await page.goto('/');
-
-  await page.getByLabel('Username').fill('invalid_user');
-  await page.getByLabel('Password').fill('invalid_password');
-  await page.getByRole('button', { name: 'Login' }).click();
+  const loginPage = new LoginPage(page);
+  await loginPage.open();
+  await loginPage.login('invalid_user', 'invalid_password');
 
   await expect(page.getByText('Epic sadface: Username and password do not match any user in this service')).toBeVisible();
 });
 
 test('empty credentials display a required username error', async ({ page }) => {
-  await page.goto('/');
-
+  const loginPage = new LoginPage(page);
+  await loginPage.open();
   await page.getByRole('button', { name: 'Login' }).click();
 
   await expect(page.getByText('Epic sadface: Username is required')).toBeVisible();
 });
 
 test('standard user can log out successfully', async ({ page }) => {
-  await page.goto('/');
-
-  await page.getByLabel('Username').fill('standard_user');
-  await page.getByLabel('Password').fill('secret_sauce');
-  await page.getByRole('button', { name: 'Login' }).click();
+  const loginPage = new LoginPage(page);
+  await loginPage.open();
+  await loginPage.login('standard_user', 'secret_sauce');
   await expect(page).toHaveURL(/inventory\.html/);
 
-  await page.getByRole('button', { name: 'Open Menu' }).click();
-  await page.getByRole('button', { name: 'Logout' }).click();
+  await loginPage.logout();
 
   await expect(page).toHaveURL('/');
   await expect(page.getByLabel('Username')).toBeVisible();
